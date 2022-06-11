@@ -1,0 +1,20 @@
+body {
+  font: 14px "Poppins", sans-serif;
+}
+
+
+#maintitle {
+  width: 100%;
+  background: #5a6047;
+  color: rgb(255, 255, 255);
+  padding: 12px 32px;
+  font-size: 64px;
+  font-weight: 600;
+  margin: 0 auto;
+}
+.imglol {
+  position:absolute;
+  right:0px;
+  top:48px;
+  padding-right:32px;
+}

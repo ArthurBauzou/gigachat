@@ -1,0 +1,182 @@
+/* GENERAL */
+
+@import url('https://fonts.googleapis.com/css2?family=Secular+One&display=swap');
+
+* {
+    margin: 0px;
+    padding: 0px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    line-height: 1.3;
+}
+body {
+    background-color: rgb(38, 31, 27);
+    display: flex;
+    flex-flow: column;
+    scrollbar-width: none;
+}
+main {
+    margin: 64px auto;
+    padding: 32px 32px 78px 48px;
+    width: 720px;
+    background-color: rgb(192, 182, 159);
+    position: relative;
+}
+h2 {
+    font-size: 32px;
+    margin-bottom: 24px;
+}
+h3 {
+    font-size: 20px;
+}
+.mobonly {
+    display: none;
+}
+
+/* IDENTITÉ */
+.idblock {
+    padding: 24px 24px 32px 0px;
+    display: flex;
+    flex-flow: nowrap row;
+    height: 240px;
+}
+.idblock h1 {
+    padding-left: 12px;
+    font-size: 42px;
+    font-weight: 700;
+    font-family: 'Secular One', sans-serif;
+    color:rgb(38, 31, 27);
+    line-height: 1;
+    margin-top: auto;
+    margin-right: 24px;
+    margin-bottom: 0;
+
+}
+.idblock img {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 8px solid rgb(99, 85, 65);
+    flex-shrink: 0;
+}
+.contact {
+    margin-top: auto;
+    margin-left: auto;
+    margin-right: 20px;
+    padding: 12px;
+    overflow: hidden;
+    width: 32px;
+    transition: all 0.6s;
+    border-radius: 24px 0px 0px 24px;
+    flex-shrink: 0;
+}
+.contact:hover  {
+    background-color: rgb(215, 206, 186);
+    cursor: pointer;
+    width: 220px;
+    flex-shrink: 0;
+}
+.contact li {
+    display: flex;
+    flex-flow: nowrap row;
+    padding: 3px 0px;
+    font-size: 13px;
+}
+.contact i {
+    font-size: 18px;
+    margin-bottom: 6px;
+    margin-right: 18px;
+    color:rgb(99, 85, 65);
+}
+.contact p {
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+
+/* COMPÉTENCES */
+.compblock {
+    display: flex;
+    flex-flow: wrap row;
+}
+.compblock h2 {
+    width: 100%;
+    display: none;
+}
+.compblock h4 {
+    font-size: 18px;
+    background-color: rgb(99, 85, 65);
+    padding: 4px 12px;
+    margin-bottom: 8px;
+    color:rgb(192, 182, 159);
+    border-radius: 0px 16px 16px 0px;
+    margin-top: 0px;
+}
+.compblock > div {
+    border-left: 0.3px solid rgb(99, 85, 65);
+    width: 272px;
+    margin-left: 16px;
+    margin-bottom: 16px;
+    margin-right: 16px;
+    
+}
+.compblock ul {
+    list-style: none;
+    margin-left: 16px;
+}
+.compscore {
+    float: right;
+    padding-right: 24px;
+    color:rgb(99, 85, 65);
+    font-size: 12px;
+    padding-top: 2px;
+}
+
+
+/* EXPERIENCES ET FORMATIONS */
+.mainblock > div {
+    display: flex;
+    flex-flow: nowrap row;
+    padding-right: 24px;
+}
+.date {
+    background-color: rgb(99, 85, 65);
+    color: rgb(192, 182, 159);
+    font-size: 14px;
+    width: fit-content;
+    padding: 0px 12px;
+    border-radius: 12px 0px 0px 12px;
+    line-height: normal;
+    height: 18px;
+    margin-top: 16px;
+    margin-left: 12px;
+}
+.etiquette {
+    margin: 8px 0px;
+    padding: 2px 16px 4px 12px;
+    border-left: 0.3px solid rgb(99, 85, 65);
+    border-radius: 0px 28px 28px 0px;
+    width: 100%;
+    transition: all 0.2s;
+}
+.etiquette:hover {
+    background-color:rgb(215, 206, 186);
+    cursor: pointer;
+}
+.etiquette h3 {
+    margin: 0px 0px 4px 0px;
+}
+.etiquette span {
+    color: rgb(99, 85, 65);
+    padding: 0px 12px;
+    border-left: 0.2px solid rgb(99, 85, 65);
+    line-height: 1;
+}
+.etiquette span:first-of-type {
+    padding-left: 0px;
+    border: none;
+}
+.etiquette ul {
+    font-size: 13px;
+    padding: 12px 24px;
+}

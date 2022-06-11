@@ -1,0 +1,118 @@
+@media screen and (max-width: 680px) {
+
+    main {
+        width: 100%;
+        margin: 0px;
+        padding: 32px 0px 48px 0px;
+    }
+
+    h2 {
+        color: rgb(192, 182, 159);
+        background-color:rgb(99, 85, 65);
+        font-size: 20px;
+        padding: 20px;
+    }
+    .mobonly {
+        display: block;
+    }
+
+    /* IDENTITE */
+    .idblock {
+        padding: 0px;
+        height: auto;
+    }
+    .idblock h1 {
+        margin-right: auto;
+    }
+    .profession{
+        padding-bottom: 16px;
+        margin: 12px auto;
+        text-align: center;
+        color: black;
+        background-color: rgb(192, 182, 159);
+        font-size: 28px;
+    }
+    .idblock img {
+        width: 30vw;
+        height: 30vw;
+        border: 7px solid rgb(99, 85, 65);
+        margin-left: auto;
+    }
+    .contact {
+        display: none;
+    }
+    div.mobhide {
+        display: none;
+    }
+
+    /* COMPETENCES */
+    .compblock {
+        display: block;
+    }
+    .compblock h2 {
+        margin-bottom: 8px;
+        display: block;
+    }
+    .compblock > div {
+        width: 70vw;
+        margin: 8px auto;
+    }
+
+    /* EXPERIENCES */
+    .mainblock h2 {
+        margin-bottom: 8px;
+    }
+    .mainblock > div {
+        margin: 0px 12px;
+        padding: 0px;
+        padding-bottom: 8px;
+        flex-flow: nowrap column;
+        border-top: 1px solid rgb(99, 85, 65);
+    }
+    .mainblock > div:first-of-type {
+        border: none;
+
+    }
+    .date {
+        background-color: rgb(192, 182, 159);
+        color: rgb(99, 85, 65);
+        font-size: 10px;
+        margin: 0px;
+        padding: 8px 12px 0px 12px;
+        height: auto;
+    }
+    .etiquette {
+        margin: 0px;
+        border: none;
+    }
+    .etiquette h3 {
+        font-size: 18px;
+        margin: 0px;
+    }
+    .etiquette span {
+        font-size: 12px;
+        display: none;
+    }
+
+    /* CONTACT */
+    .mobcontact {
+        font-size: 13px;
+        padding-left: 12px;
+    }
+    .mobcontact ul {
+        padding-left: 12px;
+        padding-top: 8px;
+        list-style: none;
+    }
+    .mobcontact li {
+        display: flex;
+        flex-flow: nowrap row;
+        margin-bottom: 12px;
+    }
+    .mobcontact i {
+        font-size: 16px;
+        color: rgb(99, 85, 65);
+        padding-right: 12px;
+    }
+
+  }
