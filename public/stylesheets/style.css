@@ -18,3 +18,31 @@ body {
   top:48px;
   padding-right:32px;
 }
+.bounce {
+  position:fixed;
+  width: 128px;
+  animation:bounce 30s linear infinite;
+}
+
+@keyframes bounce {
+  0%  {
+    top: 50%;
+    right: 00%;
+  }
+  25% {
+    top: 00%;
+    right: 50%;
+  }
+  50% {
+    top:50%;
+    right: 100%;
+  }
+  75% {
+    top:100%;
+    right: 50%;
+  }
+  100% {
+    top:50%;
+    right: 00%;
+  }
+}
