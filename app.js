@@ -1,39 +1,53 @@
+const express = require('express')
+const app = express();
+const http = require('http').createServer(app);
+const io = require('socket.io')(http, {
+  cors: {
+    origins: ['http://glub.fr:4200']
+  }
+})
+
+// UTILIATIRES
 var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
-const { Server } = require('socket.io');
-// const { createSerer } = require('hhtp');
-
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
-const { createServer } = require('http');
-
-// SOCKET INIT
-const app = express();
-const httpServer = createServer(app)
-const io = new Server(httpServer,{})
-
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
+var path = require('path');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
+// ROUTES
+var indexRouter = require('./routes/index');
+var usersRouter = require('./routes/users');
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
+// DOSSIER DES VUES ET RESSOURCES STATIQUES
+app.use(express.static(path.join(__dirname, 'public')));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
+
+
 // SOCKET
 io.on('connection', (socket) => {
-  console.log('user connected')
+
+  console.log('a user connected');
+
+  socket.on('disconnect', () => {
+    console.log('user disconected');
+  })
+
+  socket.on('message0', (msg) => {
+    console.log('message: ' + msg)
+    io.emit('emission0', `server : ${msg}`)
+  })
+
 })
-httpServer.listen(3000)
+
+http.listen(3000, () => {
+  console.log('listening on port 3000')
+})
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
