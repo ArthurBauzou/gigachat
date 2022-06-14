@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http, {
@@ -31,9 +31,8 @@ app.set('view engine', 'pug');
 
 // SOCKET
 io.on('connection', (socket) => {
-
+  
   console.log('a user connected');
-
   socket.on('disconnect', () => {
     console.log('user disconected');
   })
