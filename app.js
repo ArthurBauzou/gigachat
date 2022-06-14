@@ -38,8 +38,7 @@ io.on('connection', (socket) => {
   })
 
   socket.on('message0', (msg) => {
-    console.log('message: ' + msg)
-    io.emit('emission0', `server : ${msg}`)
+    io.emit('emission0', msg)
   })
 
 })
