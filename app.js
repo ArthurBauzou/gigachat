@@ -8,6 +8,7 @@ const io = require('socket.io')(http, {
   }
 })
 
+let sockets = {}
 let userlist = []
 
 // UTILIATIRES
@@ -34,20 +35,14 @@ app.set('view engine', 'pug');
 
 // SOCKET
 io.on('connection', (socket) => {
-  
-  console.log("un utiisateur est sur la page");
 
   socket.on('send0', (msg) => {
     io.emit('msg0', msg)
   })
-
   socket.on('join0', (user) => {
     if(!userlist.find( u => u.id == user.id )) {userlist.push(user)}
-    io.emit('user0', userlist)
-  })
-  socket.on('leave0', (user) => {
-    let udel = userlist.findIndex( u => u.id == user.id )
-    userlist.splice(udel, 1);
+    sockets[socket.id] = {id: user.id, name: user.name}
+    console.log(`CONNECTED user ${sockets[socket.id].name}`);
     io.emit('user0', userlist)
   })
   socket.on('color0', (user) => {
@@ -55,9 +50,13 @@ io.on('connection', (socket) => {
     userlist[ucol].color = user.color;
     io.emit('user0', userlist)
   })
-  
   socket.on('disconnect', () => {
-    console.log('un utilisateur a quitté la page');
+    console.log(`DISCONNECTED user ${sockets[socket.id].name}`);
+    let udel = userlist.findIndex( u => u.id == sockets[socket.id].id );
+    userlist.splice(udel, 1);
+    io.emit('user0', userlist);
+    delete sockets[socket.id];
+    socket.removeAllListeners();
   })
 
 })
