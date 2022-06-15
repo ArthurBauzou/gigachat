@@ -1,11 +1,14 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
+const crypto = require('crypto')
 const io = require('socket.io')(http, {
   cors: {
-    origins: ['http://glub.fr:4200']
+    origins: ['http://glub.fr', 'http://glub.fr:4200']
   }
 })
+
+let userlist = []
 
 // UTILIATIRES
 var createError = require('http-errors');
@@ -32,16 +35,34 @@ app.set('view engine', 'pug');
 // SOCKET
 io.on('connection', (socket) => {
   
-  console.log('a user connected');
-  socket.on('disconnect', () => {
-    console.log('user disconected');
+  console.log("un utiisateur est sur la page");
+
+  socket.on('send0', (msg) => {
+    io.emit('msg0', msg)
   })
 
-  socket.on('message0', (msg) => {
-    io.emit('emission0', msg)
+  socket.on('join0', (user) => {
+    if(!userlist.find( u => u.id == user.id )) {userlist.push(user)}
+    io.emit('user0', userlist)
+  })
+  socket.on('leave0', (user) => {
+    let udel = userlist.findIndex( u => u.id == user.id )
+    userlist.splice(udel, 1);
+    io.emit('user0', userlist)
+  })
+  socket.on('color0', (user) => {
+    let ucol = userlist.findIndex( u => u.id == user.id )
+    userlist[ucol].color = user.color;
+    io.emit('user0', userlist)
+  })
+  
+  socket.on('disconnect', () => {
+    console.log('un utilisateur a quitté la page');
   })
 
 })
+// SOCKET END
+
 
 http.listen(3000, () => {
   console.log('listening on port 3000')
