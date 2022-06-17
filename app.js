@@ -64,19 +64,24 @@ io.on('connection', (socket) => {
   })
   socket.on('disconnect', () => {
     // suppression dans la table USERS
-    let userid = sockets[socket.id].userId;
-    let i = userlist[userid].sockets.findIndex(id => id == socket.id)
-    userlist[userid].sockets.splice(i,1)
-    if (userlist[userid].sockets.length == 0) {
-      delete userlist[userid]
-      console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
-    } else {
-      console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
+    if (sockets[socket.id]) {
+      let userid = sockets[socket.id].userId;
+      let i = userlist[userid].sockets.findIndex(id => id == socket.id)
+      userlist[userid].sockets.splice(i,1)
+      if (userlist[userid].sockets.length == 0) {
+        delete userlist[userid]
+        console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
+      } else {
+        console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
+      }
+      // suppression dans la table des SOCKETS
+      delete sockets[socket.id];
+      io.emit('user0', userlist);
+      socket.removeAllListeners();
     }
-    // suppression dans la table des SOCKETS
-    delete sockets[socket.id];
-    io.emit('user0', userlist);
-    socket.removeAllListeners();
+    else {
+      console.log("deconnexion d’un utilisateur inconnu")
+    }
   })
 
 })
