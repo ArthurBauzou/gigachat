@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const crypto = require('crypto')
+const jwt = require('jsonwebtoken')
 const io = require('socket.io')(http, {
   cors: {
     origins: ['http://glub.fr', 'http://glub.fr:4200']
@@ -9,7 +9,7 @@ const io = require('socket.io')(http, {
 })
 
 let sockets = {}
-let userlist = []
+let userlist = {}
 
 // UTILIATIRES
 var createError = require('http-errors');
@@ -32,7 +32,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-
 // SOCKET
 io.on('connection', (socket) => {
 
@@ -40,22 +39,43 @@ io.on('connection', (socket) => {
     io.emit('msg0', msg)
   })
   socket.on('join0', (user) => {
-    if(!userlist.find( u => u.id == user.id )) {userlist.push(user)}
-    sockets[socket.id] = {id: user.id, name: user.name}
-    console.log(`CONNECTED user ${sockets[socket.id].name}`);
+    // stockage user et socket(s) dans la table des USERS
+    if (userlist[user.id]) {
+      userlist[user.id].sockets.push(socket.id)
+      console.log(`CONNECTED user ${userlist[user.id].name} on socket n°${userlist[user.id].sockets.length}`);
+    } else {
+      userlist[user.id] = {name: user.name, color: user.color, sockets: [socket.id]}
+      console.log(`CONNECTED user ${userlist[user.id].name}`);
+    }
+    // stockage du user dans la tables des SOCKETS (pour la déconnexion)
+    sockets[socket.id] = {userId: user.id, userName: user.name}
+    // envoi d’un jwt
+    let token = jwt.sign( user, "monsecretinutilelol" )
+    socket.emit('token0', token)
     io.emit('user0', userlist)
+    console.log(userlist)
   })
   socket.on('color0', (user) => {
-    let ucol = userlist.findIndex( u => u.id == user.id )
-    userlist[ucol].color = user.color;
+    userlist[user.id].color = user.color
     io.emit('user0', userlist)
+    // mise à jour du token
+    let token = jwt.sign( user, "puppyzai" )
+    socket.emit('token0', token)
   })
   socket.on('disconnect', () => {
-    console.log(`DISCONNECTED user ${sockets[socket.id].name}`);
-    let udel = userlist.findIndex( u => u.id == sockets[socket.id].id );
-    userlist.splice(udel, 1);
-    io.emit('user0', userlist);
+    // suppression dans la table USERS
+    let userid = sockets[socket.id].userId;
+    let i = userlist[userid].sockets.findIndex(id => id == socket.id)
+    userlist[userid].sockets.splice(i,1)
+    if (userlist[userid].sockets.length == 0) {
+      delete userlist[userid]
+      console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
+    } else {
+      console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
+    }
+    // suppression dans la table des SOCKETS
     delete sockets[socket.id];
+    io.emit('user0', userlist);
     socket.removeAllListeners();
   })
 
