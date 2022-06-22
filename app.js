@@ -59,7 +59,7 @@ io.on('connection', (socket) => {
     userlist[user.id].color = user.color
     io.emit('user0', userlist)
     // mise à jour du token
-    let token = jwt.sign( user, "puppyzai" )
+    let token = jwt.sign( user, "monsecretinutilelol" )
     socket.emit('token0', token)
   })
   socket.on('disconnect', () => {
