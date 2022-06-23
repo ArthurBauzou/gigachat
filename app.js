@@ -38,6 +38,11 @@ io.on('connection', (socket) => {
   socket.on('send0', (msg) => {
     io.emit('msg0', msg)
   })
+
+  socket.on('dice0', (res) => {
+    socket.broadcast.emit('dice1', res)
+  })
+
   socket.on('join0', (user) => {
     // stockage user et socket(s) dans la table des USERS
     if (userlist[user.id]) {
@@ -55,6 +60,7 @@ io.on('connection', (socket) => {
     io.emit('user0', userlist)
     console.log(userlist)
   })
+
   socket.on('color0', (user) => {
     userlist[user.id].color = user.color
     io.emit('user0', userlist)
@@ -62,6 +68,7 @@ io.on('connection', (socket) => {
     let token = jwt.sign( user, "monsecretinutilelol" )
     socket.emit('token0', token)
   })
+
   socket.on('disconnect', () => {
     // suppression dans la table USERS
     if (sockets[socket.id]) {
