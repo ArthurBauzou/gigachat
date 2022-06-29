@@ -43,6 +43,10 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('dice1', res)
   })
 
+  socket.on('path0', (path) => {
+    socket.broadcast.emit('path1', path)
+  })
+
   socket.on('join0', (user) => {
     // stockage user et socket(s) dans la table des USERS
     if (userlist[user.id]) {
