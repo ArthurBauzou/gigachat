@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const jwt = require('jsonwebtoken')
+const mongoose = require('mongoose')
 const io = require('socket.io')(http, {
   cors: {
     origins: ['http://glub.fr', 'http://glub.fr:4200']
@@ -10,6 +11,9 @@ const io = require('socket.io')(http, {
 
 let sockets = {}
 let userlist = {}
+
+// const dbconfig = require('./database/database.config')
+mongoose.connect('mongodb://localhost/gigabase')
 
 // UTILIATIRES
 var createError = require('http-errors');
@@ -24,8 +28,10 @@ app.use(cookieParser());
 // ROUTES
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var carnetsRouter = require('./routes/carnets');
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/u', usersRouter);
+app.use('/r', carnetsRouter);
 
 // DOSSIER DES VUES ET RESSOURCES STATIQUES
 app.use(express.static(path.join(__dirname, 'public')));
