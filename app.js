@@ -53,6 +53,10 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('path1', path)
   })
 
+  socket.on('modif0', (modif) => {
+    socket.broadcast.emit('modif1', modif)
+  })
+
   socket.on('join0', (user) => {
     // stockage user et socket(s) dans la table des USERS
     if (userlist[user.id]) {
