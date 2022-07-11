@@ -2,18 +2,20 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const jwt = require('jsonwebtoken')
-const mongoose = require('mongoose')
+// const mongoose = require('mongoose')
 const io = require('socket.io')(http, {
   cors: {
     origins: ['http://glub.fr', 'http://glub.fr:4200']
   }
 })
+const fabric = require("fabric").fabric;
 
 let sockets = {}
 let userlist = {}
+let userdocs = new Map
+let layers = []
 
-// const dbconfig = require('./database/database.config')
-mongoose.connect('mongodb://localhost/gigabase')
+// mongoose.connect('mongodb://localhost/gigabase')
 
 // UTILIATIRES
 var createError = require('http-errors');
@@ -38,21 +40,38 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+// GESTION DOCUMENTS
+function docInit(id) {
+  userdocs.set(id, [new fabric.Group()]);
+  layers.push({
+    userid: id,
+    username: userlist[id].name,
+    color: userlist[id].color,
+    index: userdocs.get(id).length - 1
+  })
+}
+function addToGroup(id,path) {
+  fabric.util.enlivenObjects(path, (objects)=> {
+    objects.forEach((o) => {
+      userdocs.get(id)[0].add(o)
+    })
+  },'fabric')
+}
+
+
 // SOCKET
 io.on('connection', (socket) => {
 
   socket.on('send0', (msg) => {
     io.emit('msg0', msg)
   })
-
   socket.on('dice0', (res) => {
     socket.broadcast.emit('dice1', res)
   })
-
   socket.on('path0', (path) => {
+    addToGroup(path.userid, path.path)
     socket.broadcast.emit('path1', path)
   })
-
   socket.on('modif0', (modif) => {
     socket.broadcast.emit('modif1', modif)
   })
@@ -73,6 +92,9 @@ io.on('connection', (socket) => {
     socket.emit('token0', token)
     io.emit('user0', userlist)
     console.log(userlist)
+
+    docInit(user.id)
+    io.emit('layers', layers);
   })
 
   socket.on('color0', (user) => {
@@ -91,6 +113,9 @@ io.on('connection', (socket) => {
       userlist[userid].sockets.splice(i,1)
       if (userlist[userid].sockets.length == 0) {
         delete userlist[userid]
+        delete userdocs[userid]
+        let newlayers = layers.filter(l => l.userid != userid)
+        layers = newlayers
         console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
       } else {
         console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
@@ -98,6 +123,7 @@ io.on('connection', (socket) => {
       // suppression dans la table des SOCKETS
       delete sockets[socket.id];
       io.emit('user0', userlist);
+      io.emit('layers', layers);
       socket.removeAllListeners();
     }
     else {
