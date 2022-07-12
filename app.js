@@ -57,6 +57,10 @@ function addToGroup(id,path) {
     })
   },'fabric')
 }
+// function recupDocs() {
+
+// }
+
 
 
 // SOCKET
@@ -74,6 +78,9 @@ io.on('connection', (socket) => {
   })
   socket.on('modif0', (modif) => {
     socket.broadcast.emit('modif1', modif)
+  })
+  socket.on('del0', (delObj) => {
+    socket.broadcast.emit('del1', delObj)
   })
 
   socket.on('join0', (user) => {
@@ -124,6 +131,7 @@ io.on('connection', (socket) => {
       delete sockets[socket.id];
       io.emit('user0', userlist);
       io.emit('layers', layers);
+      io.emit('del1',{userid:userid,type:'deco'})
       socket.removeAllListeners();
     }
     else {
