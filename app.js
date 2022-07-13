@@ -43,23 +43,84 @@ app.set('view engine', 'pug');
 // GESTION DOCUMENTS
 function docInit(id) {
   userdocs.set(id, [new fabric.Group()]);
-  layers.push({
+  layers.unshift({
     userid: id,
     username: userlist[id].name,
     color: userlist[id].color,
     index: userdocs.get(id).length - 1
   })
 }
-function addToGroup(id,path) {
-  fabric.util.enlivenObjects(path, (objects)=> {
+function addToGroup(id,index,path) {
+  fabric.util.enlivenObjects([path], (objects)=> {
     objects.forEach((o) => {
-      userdocs.get(id)[0].add(o)
+      userdocs.get(id)[index].addWithUpdate(o)
     })
   },'fabric')
+  console.log(userdocs.get(id)[index]._objects.length)
+}
+function modifGroup(id,index,modif) {
+  let amod = userdocs.get(id)[index]
+  amod.top = modif.top
+  amod.left = modif.left
+  amod.angle = modif.angle
+  amod.scaleX = modif.scaleX
+  amod.scaleY = modif.scaleY
+  amod.flipX = modif.flipX
+  amod.flipY = modif.flipY
+}
+function deleteGroups(delobj) {
+  let grpdel = userdocs.get(delobj.userid)
+  if (!grpdel) {return}
+  switch (delobj.type) {
+    case 'all':
+      grpdel = []
+      layers.filter( l => {
+        l.userid != delobj.userid
+      })
+      docInit(delobj.userid)
+      break;
+    case 'undo':
+      let rmobj = grpdel[delobj.index]._objects[grpdel[delobj.index]._objects.length-1]
+      grpdel[delobj.index].removeWithUpdate(rmobj)
+      break;
+  }
 }
 // function recupDocs() {
 
 // }
+
+function sendDocs(socket,user) {
+  for (let usr of userdocs) {
+    console.log(usr[0])
+    if (usr[0] != user.id) {
+      usr[1].forEach((d,i)=>{
+        for (let obj of d._objects) {
+          let paq = {
+            userid: usr[0],
+            index: i,
+            object: obj
+          }
+          socket.emit('path1',paq)
+        }
+        let mod = {
+          userid: usr[0],
+          index: i,
+          modif: {
+            type: d.type,
+            top: d.top,
+            left: d.left,
+            angle: d.angle,
+            scaleX: d.scaleX,
+            scaleY: d.scaleY,
+            flipX: d.flipX,
+            flipY: d.flipY
+          }
+        }
+        socket.emit('modif1', mod)
+      })
+    }
+  }
+}
 
 
 
@@ -72,14 +133,16 @@ io.on('connection', (socket) => {
   socket.on('dice0', (res) => {
     socket.broadcast.emit('dice1', res)
   })
-  socket.on('path0', (path) => {
-    addToGroup(path.userid, path.path)
-    socket.broadcast.emit('path1', path)
+  socket.on('path0', (obj) => {
+    addToGroup(obj.userid, obj.index, obj.object)
+    socket.broadcast.emit('path1', obj)
   })
-  socket.on('modif0', (modif) => {
-    socket.broadcast.emit('modif1', modif)
+  socket.on('modif0', (mod) => {
+    modifGroup(mod.userid, mod.index, mod.modif)
+    socket.broadcast.emit('modif1', mod)
   })
   socket.on('del0', (delObj) => {
+    deleteGroups(delObj)
     socket.broadcast.emit('del1', delObj)
   })
 
@@ -102,6 +165,9 @@ io.on('connection', (socket) => {
 
     docInit(user.id)
     io.emit('layers', layers);
+    // envoir des documents sur le serveur
+    sendDocs(socket,user.id)
+
   })
 
   socket.on('color0', (user) => {
@@ -131,7 +197,7 @@ io.on('connection', (socket) => {
       delete sockets[socket.id];
       io.emit('user0', userlist);
       io.emit('layers', layers);
-      io.emit('del1',{userid:userid,type:'deco'})
+      io.emit('del1', {userid:userid, type:'all'})
       socket.removeAllListeners();
     }
     else {
