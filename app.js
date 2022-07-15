@@ -41,23 +41,31 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 // GESTION DOCUMENTS
-function docInit(id) {
-  userdocs.set(id, [new fabric.Group()]);
-  layers.unshift({
-    userid: id,
-    username: userlist[id].name,
-    color: userlist[id].color,
-    index: userdocs.get(id).length - 1
-  })
+
+function editLayers(lobj) {
+  switch(lobj.type) {
+    case 'new' :
+      userdocs.get(lobj.userid).push(new fabric.Group())
+      layers.push({
+        userid: lobj.userid,
+        username: userlist[lobj.userid].name,
+        color: userlist[lobj.userid].color,
+        index: userdocs.get(lobj.userid).length - 1
+      })
+      console.log('layer crée',userlist[lobj.userid].name, userdocs.get(lobj.userid).length - 1)
+      break;
+  }
 }
+
 function addToGroup(id,index,path) {
   fabric.util.enlivenObjects([path], (objects)=> {
     objects.forEach((o) => {
       userdocs.get(id)[index].addWithUpdate(o)
     })
   },'fabric')
-  console.log(userdocs.get(id)[index]._objects.length)
+  console.log(`Doc ${index} de ${userlist[id].name} : ${userdocs.get(id)[index]._objects.length} objets`)
 }
+
 function modifGroup(id,index,modif) {
   let amod = userdocs.get(id)[index]
   amod.top = modif.top
@@ -68,16 +76,16 @@ function modifGroup(id,index,modif) {
   amod.flipX = modif.flipX
   amod.flipY = modif.flipY
 }
+
 function deleteGroups(delobj) {
   let grpdel = userdocs.get(delobj.userid)
   if (!grpdel) {return}
   switch (delobj.type) {
     case 'all':
-      grpdel = []
-      layers.filter( l => {
-        l.userid != delobj.userid
-      })
-      docInit(delobj.userid)
+      userdocs.set(delobj.userid, [])
+      let newlayers = layers.filter(l => l.userid != delobj.userid)
+      layers = newlayers
+      console.log(layers)
       break;
     case 'undo':
       let rmobj = grpdel[delobj.index]._objects[grpdel[delobj.index]._objects.length-1]
@@ -85,14 +93,11 @@ function deleteGroups(delobj) {
       break;
   }
 }
-// function recupDocs() {
 
-// }
-
+// envoie les documents des autres deja presents sur le serveur
 function sendDocs(socket,user) {
   for (let usr of userdocs) {
-    console.log(usr[0])
-    if (usr[0] != user.id) {
+    if (usr[0] != user) {
       usr[1].forEach((d,i)=>{
         for (let obj of d._objects) {
           let paq = {
@@ -106,7 +111,6 @@ function sendDocs(socket,user) {
           userid: usr[0],
           index: i,
           modif: {
-            type: d.type,
             top: d.top,
             left: d.left,
             angle: d.angle,
@@ -132,6 +136,10 @@ io.on('connection', (socket) => {
   })
   socket.on('dice0', (res) => {
     socket.broadcast.emit('dice1', res)
+  })
+  socket.on('layers0', (layerobj) => {
+    editLayers(layerobj)
+    io.emit('layers1', layers)
   })
   socket.on('path0', (obj) => {
     addToGroup(obj.userid, obj.index, obj.object)
@@ -161,12 +169,11 @@ io.on('connection', (socket) => {
     let token = jwt.sign( user, "monsecretinutilelol" )
     socket.emit('token0', token)
     io.emit('user0', userlist)
-    console.log(userlist)
-
-    docInit(user.id)
-    io.emit('layers', layers);
-    // envoir des documents sur le serveur
+    // console.log(userlist)
+    userdocs.set(user.id, [])
+    socket.emit('layers', layers);
     sendDocs(socket,user.id)
+    // console.log('co',userdocs, layers)
 
   })
 
@@ -186,12 +193,12 @@ io.on('connection', (socket) => {
       userlist[userid].sockets.splice(i,1)
       if (userlist[userid].sockets.length == 0) {
         delete userlist[userid]
-        delete userdocs[userid]
+        userdocs.delete(userid)
         let newlayers = layers.filter(l => l.userid != userid)
         layers = newlayers
-        console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
+        // console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
       } else {
-        console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
+        // console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
       }
       // suppression dans la table des SOCKETS
       delete sockets[socket.id];
@@ -199,6 +206,7 @@ io.on('connection', (socket) => {
       io.emit('layers', layers);
       io.emit('del1', {userid:userid, type:'all'})
       socket.removeAllListeners();
+      // console.log('deco',userdocs, layers)
     }
     else {
       console.log("deconnexion d’un utilisateur inconnu")
