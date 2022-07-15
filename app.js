@@ -45,19 +45,23 @@ app.set('view engine', 'pug');
 function editLayers(lobj) {
   switch(lobj.type) {
     case 'new' :
-      userdocs.get(lobj.userid).push(new fabric.Group())
+      // userdocs.get(lobj.userid).push(new fabric.Group())
+      userdocs.get(lobj.userid)[lobj.index] = new fabric.Group()
       layers.push({
         userid: lobj.userid,
         username: userlist[lobj.userid].name,
         color: userlist[lobj.userid].color,
-        index: userdocs.get(lobj.userid).length - 1
+        index: lobj.index
       })
-      console.log('layer crée',userlist[lobj.userid].name, userdocs.get(lobj.userid).length - 1)
       break;
   }
 }
 
 function addToGroup(id,index,path) {
+  // if (!secuCheck(id,index)) {
+  //   console.log('pas de document ici');
+  //   return
+  // }
   fabric.util.enlivenObjects([path], (objects)=> {
     objects.forEach((o) => {
       userdocs.get(id)[index].addWithUpdate(o)
@@ -67,6 +71,10 @@ function addToGroup(id,index,path) {
 }
 
 function modifGroup(id,index,modif) {
+  // if (!secuCheck(id,index)) {
+  //   console.log('pas de document ici');
+  //   return
+  // }
   let amod = userdocs.get(id)[index]
   amod.top = modif.top
   amod.left = modif.left
@@ -85,7 +93,6 @@ function deleteGroups(delobj) {
       userdocs.set(delobj.userid, [])
       let newlayers = layers.filter(l => l.userid != delobj.userid)
       layers = newlayers
-      console.log(layers)
       break;
     case 'undo':
       let rmobj = grpdel[delobj.index]._objects[grpdel[delobj.index]._objects.length-1]
@@ -126,7 +133,11 @@ function sendDocs(socket,user) {
   }
 }
 
-
+function secuCheck(userid,index) {
+  if (!userdocs.get(userid) || userdocs.get(userid)[index] == undefined) {
+    return false
+  }
+}
 
 // SOCKET
 io.on('connection', (socket) => {
@@ -154,8 +165,16 @@ io.on('connection', (socket) => {
     socket.broadcast.emit('del1', delObj)
   })
 
+  socket.on('color0', (user) => {
+    userlist[user.id].color = user.color
+    io.emit('user0', userlist)
+    layers.forEach(l=>{ if(l.userid == user.id) {l.color = user.color} })
+    io.emit('layers1', layers);
+    let token = jwt.sign( user, "monsecretinutilelol" )
+    socket.emit('token0', token)
+  })
+
   socket.on('join0', (user) => {
-    // stockage user et socket(s) dans la table des USERS
     if (userlist[user.id]) {
       userlist[user.id].sockets.push(socket.id)
       console.log(`CONNECTED user ${userlist[user.id].name} on socket n°${userlist[user.id].sockets.length}`);
@@ -163,50 +182,41 @@ io.on('connection', (socket) => {
       userlist[user.id] = {name: user.name, color: user.color, sockets: [socket.id]}
       console.log(`CONNECTED user ${userlist[user.id].name}`);
     }
-    // stockage du user dans la tables des SOCKETS (pour la déconnexion)
     sockets[socket.id] = {userId: user.id, userName: user.name}
     // envoi d’un jwt
     let token = jwt.sign( user, "monsecretinutilelol" )
     socket.emit('token0', token)
     io.emit('user0', userlist)
-    // console.log(userlist)
+
     userdocs.set(user.id, [])
-    socket.emit('layers', layers);
     sendDocs(socket,user.id)
-    // console.log('co',userdocs, layers)
 
   })
 
-  socket.on('color0', (user) => {
-    userlist[user.id].color = user.color
-    io.emit('user0', userlist)
-    // mise à jour du token
-    let token = jwt.sign( user, "monsecretinutilelol" )
-    socket.emit('token0', token)
-  })
 
   socket.on('disconnect', () => {
-    // suppression dans la table USERS
     if (sockets[socket.id]) {
       let userid = sockets[socket.id].userId;
       let i = userlist[userid].sockets.findIndex(id => id == socket.id)
       userlist[userid].sockets.splice(i,1)
       if (userlist[userid].sockets.length == 0) {
+
         delete userlist[userid]
+        io.emit('user0', userlist);
+
         userdocs.delete(userid)
+        io.emit('del1', {userid:userid, type:'all'})
+
         let newlayers = layers.filter(l => l.userid != userid)
         layers = newlayers
-        // console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
+        io.emit('layers1', layers);
+
+        console.log(`DISCONNECTED user ${sockets[socket.id].userName} (final)`);
       } else {
-        // console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
+        console.log(`DISCONNECTED user ${sockets[socket.id].userName} from socket ${socket.id}`);
       }
-      // suppression dans la table des SOCKETS
       delete sockets[socket.id];
-      io.emit('user0', userlist);
-      io.emit('layers', layers);
-      io.emit('del1', {userid:userid, type:'all'})
       socket.removeAllListeners();
-      // console.log('deco',userdocs, layers)
     }
     else {
       console.log("deconnexion d’un utilisateur inconnu")
