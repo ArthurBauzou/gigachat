@@ -45,7 +45,6 @@ app.set('view engine', 'pug');
 function editLayers(lobj) {
   switch(lobj.type) {
     case 'new' :
-      // userdocs.get(lobj.userid).push(new fabric.Group())
       userdocs.get(lobj.userid)[lobj.index] = new fabric.Group()
       layers.push({
         userid: lobj.userid,
@@ -58,10 +57,7 @@ function editLayers(lobj) {
 }
 
 function addToGroup(id,index,path) {
-  // if (!secuCheck(id,index)) {
-  //   console.log('pas de document ici');
-  //   return
-  // }
+  if (secuCheck(id,index)) { console.log('pas de document ici');return }
   fabric.util.enlivenObjects([path], (objects)=> {
     objects.forEach((o) => {
       userdocs.get(id)[index].addWithUpdate(o)
@@ -71,10 +67,7 @@ function addToGroup(id,index,path) {
 }
 
 function modifGroup(id,index,modif) {
-  // if (!secuCheck(id,index)) {
-  //   console.log('pas de document ici');
-  //   return
-  // }
+  if (secuCheck(id,index)) { console.log('pas de document ici');return }
   let amod = userdocs.get(id)[index]
   amod.top = modif.top
   amod.left = modif.left
@@ -135,7 +128,7 @@ function sendDocs(socket,user) {
 
 function secuCheck(userid,index) {
   if (!userdocs.get(userid) || userdocs.get(userid)[index] == undefined) {
-    return false
+    return true
   }
 }
 
@@ -190,7 +183,6 @@ io.on('connection', (socket) => {
 
     userdocs.set(user.id, [])
     sendDocs(socket,user.id)
-
   })
 
 
