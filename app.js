@@ -91,6 +91,13 @@ function deleteGroups(delobj) {
       let rmobj = grpdel[delobj.index]._objects[grpdel[delobj.index]._objects.length-1]
       grpdel[delobj.index].removeWithUpdate(rmobj)
       break;
+    case 'cutter':
+      let cutobj = grpdel[delobj.index]._objects[delobj.obj_i]
+      grpdel[delobj.index].removeWithUpdate(cutobj)
+      break;
+    case 'movez':
+      grpdel[delobj.index]._objects[delobj.obj_i].moveTo(delobj.targ)
+      break;
   }
 }
 
@@ -169,20 +176,25 @@ io.on('connection', (socket) => {
 
   socket.on('join0', (user) => {
     if (userlist[user.id]) {
-      userlist[user.id].sockets.push(socket.id)
-      console.log(`CONNECTED user ${userlist[user.id].name} on socket n°${userlist[user.id].sockets.length}`);
+      console.log('utilisateur déjà connecté')
+      socket.emit('permission', {user: user.name, perm: false})
+      return
+      // userlist[user.id].sockets.push(socket.id)
+      // console.log(`CONNECTED user ${userlist[user.id].name} on socket n°${userlist[user.id].sockets.length}`);
     } else {
       userlist[user.id] = {name: user.name, color: user.color, sockets: [socket.id]}
-      console.log(`CONNECTED user ${userlist[user.id].name}`);
+      sockets[socket.id] = {userId: user.id, userName: user.name}
+      userdocs.set(user.id, [])
+      console.log(`CONNECTED user ${userlist[user.id].name}`)
+      socket.emit('permission', {user: user.name, perm: true})
+      let token = jwt.sign( user, "monsecretinutilelol" )
+      socket.emit('token0', token)
     }
-    sockets[socket.id] = {userId: user.id, userName: user.name}
-    // envoi d’un jwt
-    let token = jwt.sign( user, "monsecretinutilelol" )
-    socket.emit('token0', token)
+  })
+  
+  socket.on('inidata', (user) => {
     io.emit('user0', userlist)
-
-    userdocs.set(user.id, [])
-    sendDocs(socket,user.id)
+    sendDocs(socket, user.id)
   })
 
 
